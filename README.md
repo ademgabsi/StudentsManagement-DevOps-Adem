@@ -8,3 +8,4 @@ L’objectif principal est de permettre aux étudiants de configurer un pipeline
 ## 👤 Auteur
 ESPRIT - UP ASI - Alaa RAMI 
 
+Nouveau test de trigger Jenkins Tue Dec  9 10:44:52 UTC 2025
