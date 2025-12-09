@@ -6,5 +6,5 @@ Il sert de support pratique pour mettre en œuvre un pipeline Jenkins basé sur 
 L’objectif principal est de permettre aux étudiants de configurer un pipeline SCM, d’automatiser le build, d’exécuter des tests unitaires (si disponibles) et de générer un livrable.  
 
 ## 👤 Auteur
-ESPRIT - UP ASI - Alaa RAMI  
-Test trigger automatique Mon Dec  1 23:17:17 UTC 2025
+ESPRIT - UP ASI - Alaa RAMI 
+
