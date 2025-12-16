@@ -23,14 +23,14 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                // Requires "Manage Jenkins -> Configure System -> SonarQube servers" with Name: SonarQube
-                withSonarQubeEnv('SonarQube') {
-                    sh 'mvn -B sonar:sonar'
+                // Utilise la credential SONAR_TOKEN et fournit explicitement l'URL et le token au scanner
+                withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+                    sh 'mvn -B -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${SONAR_TOKEN} sonar:sonar'
                 }
             }
         }
 
-        // Quality Gate (requires Sonar webhook to Jenkins)
+        // Quality Gate (si webhook configuré dans SonarQube) — peut être ignoré si non configuré
         stage('Quality Gate') {
             when {
                 expression { return true } // set to false to disable
