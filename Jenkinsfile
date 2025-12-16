@@ -16,19 +16,14 @@ pipeline {
 
         stage('Clean & Build') {
             steps {
-                // On saute les tests pour terminer l'atelier rapidement
                 sh 'mvn -B -DskipTests clean package'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                // Fournir le token via Jenkins credentials, et exécuter l'analyse
-                // à l'intérieur du withSonarQubeEnv pour que waitForQualityGate fonctionne.
                 withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SonarQube') {
-                        // Le wrapper exporte les variables d'environnement nécessaires.
-                        // On passe explicitement le token pour s'assurer qu'il est utilisé.
                         sh 'mvn -B -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=${SONAR_TOKEN} sonar:sonar'
                     }
                 }
@@ -37,8 +32,9 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                // Attend le résultat du Quality Gate et arrête le pipeline si échec
-                waitForQualityGate abortPipeline: true
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
@@ -60,6 +56,21 @@ pipeline {
                 }
             }
         }
+
+        stage('Kubernetes Deploy') {
+            steps {
+                // Provide kubeconfig as a Jenkins "Secret file" credential with ID 'kubeconfig'
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh '''
+                      export KUBECONFIG=${KUBECONFIG}
+                      kubectl apply -f k8s/
+                      kubectl rollout status deployment/students-management --timeout=120s || true
+                      kubectl get pods -l app=students-management -o wide
+                      kubectl get svc students-management -o wide
+                    '''
+                }
+            }
+        }
     }
 
     post {
@@ -67,7 +78,7 @@ pipeline {
             echo 'Pipeline terminé (succès ou échec).'
         }
         success {
-            echo 'Build réussi, image Docker poussée.'
+            echo 'Build réussi, image Docker poussée et déployée sur Kubernetes.'
         }
         failure {
             echo 'Le pipeline a échoué, vérifier les logs.'

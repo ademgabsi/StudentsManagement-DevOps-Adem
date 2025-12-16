@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: students-management
+  labels:
+    app: students-management
+spec:
+  type: NodePort
+  selector:
+    app: students-management
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30080
