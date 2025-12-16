@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Remplace par TON repo Docker Hub
         DOCKER_IMAGE = "ademgabsi/students-management"
         DOCKER_TAG   = "latest"
     }
@@ -10,15 +9,36 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Récupérer la dernière version de TON fork
                 git branch: 'main',
                     url: 'https://github.com/ademgabsi/StudentsManagement-DevOps-Adem.git'
             }
         }
 
-        stage('Clean & Build') {
+        stage('Clean & Build (with tests)') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn -B -DskipTests=false clean verify'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                // Requires "Manage Jenkins -> Configure System -> SonarQube servers" with Name: SonarQube
+                withSonarQubeEnv('SonarQube') {
+                    sh 'mvn -B sonar:sonar'
+                }
+            }
+        }
+
+        // Optional: wait for Quality Gate result (requires SonarQube webhook pointing to Jenkins)
+        // Configure webhook in SonarQube:
+        // Administration -> Configuration -> Webhooks -> Add:
+        // Name: Jenkins, URL: http://127.0.0.1:8080/sonarqube-webhook/
+        stage('Quality Gate') {
+            when {
+                expression { return true } // set to false to disable
+            }
+            steps {
+                waitForQualityGate abortPipeline: true
             }
         }
 
