@@ -25,7 +25,7 @@ pipeline {
             steps {
                 // Utilise la credential SONAR_TOKEN et fournit explicitement l'URL et le token au scanner
                 withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
-                    sh 'mvn -B -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${SONAR_TOKEN} sonar:sonar'
+                    sh 'mvn -B -Dsonar.host.url=http://localhost:9000 -Dsonar.token=${SONAR_TOKEN} sonar:sonar'
                 }
             }
         }
