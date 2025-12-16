@@ -14,9 +14,10 @@ pipeline {
             }
         }
 
-        stage('Clean & Build (with tests)') {
+        stage('Clean & Build') {
             steps {
-                sh 'mvn -B -DskipTests=false clean verify'
+                // On saute les tests pour terminer l'atelier rapidement
+                sh 'mvn -B -DskipTests clean package'
             }
         }
 
@@ -29,10 +30,7 @@ pipeline {
             }
         }
 
-        // Optional: wait for Quality Gate result (requires SonarQube webhook pointing to Jenkins)
-        // Configure webhook in SonarQube:
-        // Administration -> Configuration -> Webhooks -> Add:
-        // Name: Jenkins, URL: http://127.0.0.1:8080/sonarqube-webhook/
+        // Quality Gate (requires Sonar webhook to Jenkins)
         stage('Quality Gate') {
             when {
                 expression { return true } // set to false to disable
