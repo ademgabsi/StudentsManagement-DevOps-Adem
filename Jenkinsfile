@@ -23,19 +23,21 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                // Utilise la credential SONAR_TOKEN et fournit explicitement l'URL et le token au scanner
+                // Fournir le token via Jenkins credentials, et exécuter l'analyse
+                // à l'intérieur du withSonarQubeEnv pour que waitForQualityGate fonctionne.
                 withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
-                    sh 'mvn -B -Dsonar.host.url=http://localhost:9000 -Dsonar.token=${SONAR_TOKEN} sonar:sonar'
+                    withSonarQubeEnv('SonarQube') {
+                        // Le wrapper exporte les variables d'environnement nécessaires.
+                        // On passe explicitement le token pour s'assurer qu'il est utilisé.
+                        sh 'mvn -B -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=${SONAR_TOKEN} sonar:sonar'
+                    }
                 }
             }
         }
 
-        // Quality Gate (si webhook configuré dans SonarQube) — peut être ignoré si non configuré
         stage('Quality Gate') {
-            when {
-                expression { return true } // set to false to disable
-            }
             steps {
+                // Attend le résultat du Quality Gate et arrête le pipeline si échec
                 waitForQualityGate abortPipeline: true
             }
         }
